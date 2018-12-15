@@ -1,0 +1,10 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 20px;
+}
+
+.leftSide {
+  display: flex;
+  align-items: center;
+}

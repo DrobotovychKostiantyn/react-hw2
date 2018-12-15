@@ -1,7 +1,23 @@
 import React, { Component } from 'react';
+
+import Table from './TableOrderHistory/index';
+
+import Header from './Header/index';
+
+import FilterMenu from './FilterMenu/index';
+import Menu from './Menu/index';
+
+// forms
+import SignIn from './Sign-in/index';
+import SignUp from './Sign-up/index';
+
+// reviews
+import NodeEditor from './NoteEditor/index';
+import NodeList from './NodeList/index';
+
 import Modal from './Modal/index';
 import * as Api from './services/api';
-import Menu from './Menu/index';
+import History from './History/index';
 import Loading from './Loading/index';
 
 const date = new Date();
@@ -17,12 +33,33 @@ class App extends Component {
     isModalOpenForPost: false,
     isModalOpen: false,
     isModalLoading: false,
-    list: [],
+    historyTitles: [],
+    listHistory: [],
     focusListItem: null,
     address: '',
     price: '',
     rating: '',
+    notes: [],
+    menu: [],
+    filter: '',
   };
+
+  handleSubmitNodeEditor = (text, rate) => {
+    this.setState(prevState => ({
+      notes: [{ id: Date.now(), text, rate }, ...prevState.notes],
+    }));
+  };
+
+  handleChangeFilter = ({ target: { value } }) => {
+    this.setState({
+      filter: value,
+    });
+  };
+
+  filterMenu = filter =>
+    this.state.menu.filter(item =>
+      item.name.toLowerCase().includes(filter.toLowerCase()),
+    );
 
   handleOpenModal = () => {
     this.setState({
@@ -40,18 +77,28 @@ class App extends Component {
   };
 
   componentDidMount() {
-    Api.getAllList().then(item =>
+    Api.getAllList('history').then(item =>
       this.setState({
-        list: item,
+        listHistory: item,
+      }),
+    );
+    Api.getAllList('historyTitles').then(item =>
+      this.setState({
+        historyTitles: item,
+      }),
+    );
+    Api.getAllList('menu').then(item =>
+      this.setState({
+        menu: item,
       }),
     );
   }
 
   handleBtnDelete = id => {
-    Api.deleteById(id).then(response => {
+    Api.deleteById('history', id).then(response => {
       if (response.status !== 200) return;
       this.setState(prev => ({
-        list: prev.list.filter(el => el.id !== id),
+        listHistory: prev.listHistory.filter(el => el.id !== id),
       }));
     });
   };
@@ -60,7 +107,7 @@ class App extends Component {
     this.setState({
       isModalLoading: true,
     });
-    Api.getById(id).then(response => {
+    Api.getById('history', id).then(response => {
       if (response.status !== 200) return;
 
       this.setState({
@@ -81,18 +128,18 @@ class App extends Component {
     e.preventDefault();
     const { address, price, rating } = this.state;
 
-    const value = {
+    const item = {
       date: `${time.day}/${time.month}/${time.year}`,
       address,
       price,
       rating,
     };
-    Api.addItem(value).then(response => {
+    Api.addItem('history', item).then(response => {
       if (response.status !== 201) return;
 
-      Api.getAllList().then(item =>
+      Api.getAllList('history').then(item =>
         this.setState({
-          list: item,
+          listHistory: item,
           address: null,
           price: null,
           rating: null,
@@ -105,22 +152,46 @@ class App extends Component {
 
   render() {
     const {
-      list,
+      listHistory,
       focusListItem,
       isModalLoading,
       isModalOpenForPost,
       address,
       price,
       rating,
+      filter,
+      notes,
+      historyTitles,
     } = this.state;
+
+    const filteredMenu = this.filterMenu(filter);
 
     return (
       <div>
+        <div>
+          <Header />
+          <hr />
+          <Table historyTitles={historyTitles} listHistory={listHistory} />
+          <hr />
+          <FilterMenu
+            filter={filter}
+            handleChangeFilter={this.handleChangeFilter}
+          />
+          <Menu menuList={filteredMenu} />
+          <hr />
+          <SignIn />
+          <SignUp />
+          <hr />
+          <NodeEditor onSubmit={this.handleSubmitNodeEditor} />
+          <NodeList notes={notes} />
+        </div>
+
+        <hr />
         <button type="button" onClick={this.handleOpenModal}>
           Add Item for BD
         </button>
-        <Menu
-          list={list}
+        <History
+          list={listHistory}
           deleteClick={this.handleBtnDelete}
           moreClick={this.handleBtnMore}
         />

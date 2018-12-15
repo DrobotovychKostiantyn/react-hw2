@@ -1,6 +1,6 @@
 import React from 'react';
 
-const MenuListItem = ({ el: { date, price, address, rating } }) => {
+const HistoryListItem = ({ el: { date, price, address, rating } }) => {
   return (
     <div>
       <p>Date: {date}</p>
@@ -11,4 +11,4 @@ const MenuListItem = ({ el: { date, price, address, rating } }) => {
   );
 };
 
-export default MenuListItem;
+export default HistoryListItem;

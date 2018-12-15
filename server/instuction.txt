@@ -1,4 +1,1 @@
-Запускать сервер на http://localhost:3000 
-Script: npm run server
-
-Сервер запускать первым. Тогда хост будет выбран автоматически и будет совпадать с хостом в приложении.  
+Script for start server: npm run server. 
