@@ -1,0 +1,16 @@
+.title {
+  text-align: center;
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.listItem {
+  width: 300px;
+  border: 1px solid silver;
+  padding: 15px;
+  margin: 0 20px 20px 0;
+}

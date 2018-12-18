@@ -8,6 +8,7 @@ export default class Modal extends Component {
     window.addEventListener('click', this.handleBackdropClick);
     window.addEventListener('keydown', this.handleEscapeDown);
   }
+
   componentWillUnmount() {
     window.removeEventListener('click', this.handleBackdropClick);
     window.removeEventListener('keydown', this.handleEscapeDown);

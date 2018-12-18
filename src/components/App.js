@@ -1,32 +1,18 @@
 import React, { Component } from 'react';
 
 import Table from './TableOrderHistory/index';
-
 import Header from './Header/index';
-
 import FilterMenu from './FilterMenu/index';
 import Menu from './Menu/index';
-
-// forms
 import SignIn from './Sign-in/index';
 import SignUp from './Sign-up/index';
-
-// reviews
 import NodeEditor from './NoteEditor/index';
 import NodeList from './NodeList/index';
-
 import Modal from './Modal/index';
-import * as Api from './services/api';
 import History from './History/index';
 import Loading from './Loading/index';
 
-const date = new Date();
-
-const time = {
-  day: date.getDate(),
-  month: date.getMonth() + 1,
-  year: date.getFullYear(),
-};
+import * as Api from './services/api';
 
 class App extends Component {
   state = {
@@ -44,11 +30,23 @@ class App extends Component {
     filter: '',
   };
 
-  handleSubmitNodeEditor = (text, rate) => {
-    this.setState(prevState => ({
-      notes: [{ id: Date.now(), text, rate }, ...prevState.notes],
-    }));
-  };
+  componentDidMount() {
+    Api.getAllList('history').then(list =>
+      this.setState({
+        listHistory: list,
+      }),
+    );
+    Api.getAllList('historyTitles').then(listTitles =>
+      this.setState({
+        historyTitles: listTitles,
+      }),
+    );
+    Api.getAllList('menu').then(listMenu =>
+      this.setState({
+        menu: listMenu,
+      }),
+    );
+  }
 
   handleChangeFilter = ({ target: { value } }) => {
     this.setState({
@@ -63,36 +61,38 @@ class App extends Component {
 
   handleOpenModal = () => {
     this.setState({
+      isModalLoading: true,
+    });
+    this.setState({
+      isModalLoading: false,
       isModalOpen: true,
-      isModalOpenForPost: true,
     });
   };
 
   handleCloseModal = () => {
     this.setState({
       isModalOpen: false,
+    });
+  };
+
+  handleOpenModalForPost = () => {
+    this.setState({
+      isModalOpenForPost: true,
+    });
+  };
+
+  handleCloseModalForPost = () => {
+    this.setState({
       focusListItem: null,
       isModalOpenForPost: false,
     });
   };
 
-  componentDidMount() {
-    Api.getAllList('history').then(item =>
-      this.setState({
-        listHistory: item,
-      }),
-    );
-    Api.getAllList('historyTitles').then(item =>
-      this.setState({
-        historyTitles: item,
-      }),
-    );
-    Api.getAllList('menu').then(item =>
-      this.setState({
-        menu: item,
-      }),
-    );
-  }
+  handleSubmitNodeEditor = (text, rate) => {
+    this.setState(prevState => ({
+      notes: [{ id: Date.now(), text, rate }, ...prevState.notes],
+    }));
+  };
 
   handleBtnDelete = id => {
     Api.deleteById('history', id).then(response => {
@@ -111,7 +111,6 @@ class App extends Component {
       if (response.status !== 200) return;
 
       this.setState({
-        isModalOpen: true,
         isModalLoading: false,
         focusListItem: response.data,
       });
@@ -128,22 +127,29 @@ class App extends Component {
     e.preventDefault();
     const { address, price, rating } = this.state;
 
-    const item = {
+    const date = new Date();
+
+    const time = {
+      day: date.getDate(),
+      month: date.getMonth() + 1,
+      year: date.getFullYear(),
+    };
+
+    const newItemInList = {
       date: `${time.day}/${time.month}/${time.year}`,
       address,
       price,
       rating,
     };
-    Api.addItem('history', item).then(response => {
+    Api.addItem('history', newItemInList).then(response => {
       if (response.status !== 201) return;
 
-      Api.getAllList('history').then(item =>
+      Api.getAllList('history').then(allList =>
         this.setState({
-          listHistory: item,
+          listHistory: allList,
           address: null,
           price: null,
           rating: null,
-          isModalOpen: false,
           isModalOpenForPost: false,
         }),
       );
@@ -154,6 +160,7 @@ class App extends Component {
     const {
       listHistory,
       focusListItem,
+      isModalOpen,
       isModalLoading,
       isModalOpenForPost,
       address,
@@ -188,8 +195,22 @@ class App extends Component {
 
         <hr />
         <button type="button" onClick={this.handleOpenModal}>
+          Open Modal
+        </button>
+
+        <hr />
+        <button type="button" onClick={this.handleOpenModalForPost}>
           Add Item for BD
         </button>
+
+        {isModalOpen && (
+          <Modal handleCloseClick={this.handleCloseModal}>
+            <div>
+              <p>Fusce egestas elit eget lorem</p>
+            </div>
+          </Modal>
+        )}
+
         <History
           list={listHistory}
           deleteClick={this.handleBtnDelete}
@@ -197,7 +218,7 @@ class App extends Component {
         />
 
         {isModalOpenForPost && (
-          <Modal handleCloseClick={this.handleCloseModal}>
+          <Modal handleCloseClick={this.handleCloseModalForPost}>
             <form onSubmit={this.handleAddItem}>
               <input
                 type="text"
@@ -228,7 +249,7 @@ class App extends Component {
         {isModalLoading && <Loading />}
 
         {focusListItem && (
-          <Modal handleCloseClick={this.handleCloseModal}>
+          <Modal handleCloseClick={this.handleCloseModalForPost}>
             {focusListItem && (
               <div>
                 <p>Date: {focusListItem.date}</p>
